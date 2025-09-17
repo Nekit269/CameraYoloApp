@@ -4,9 +4,7 @@ __pycache__/
 # Виртуальное окружение
 venv/
 .env
+*.bat
 
 # IDE
 .vscode/
-
-# DB
-database.ini
