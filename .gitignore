@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+
+# Виртуальное окружение
+venv/
+.env
+
+# IDE
+.vscode/
+
+# DB
+database.ini
