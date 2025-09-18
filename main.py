@@ -1,25 +1,26 @@
-import psycopg2
+import os
+import databases
 
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
+from dotenv import load_dotenv
 
-from connect_to_db import connect_to_db
 from models.post import UserPost, UserPostIn
+
+load_dotenv()
+database_url = os.getenv("DATABASE_URL")
+db = databases.Database(database_url)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    conn = connect_to_db()
+    await db.connect()
     yield
-    conn.close()
+    await db.disconnect()
     
 app = FastAPI(lifespan=lifespan)
 
-@app.get("/")
-async def root():
-    return {"message": "Hello, world!"}
-
 @app.post("/post", response_model=UserPost)
-async def create_post(post: UserPost):
+async def create_post(post: UserPostIn):
     pass
 
 @app.get("/posts", response_model=list[UserPost])
