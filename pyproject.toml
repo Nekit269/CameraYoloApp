@@ -1,5 +1,5 @@
 [project]
-name = "train-app"
+name = "EnvTry"
 version = "0.1.0"
 description = ""
 authors = [
@@ -13,7 +13,10 @@ dependencies = [
     "psycopg2 (>=2.9.10,<3.0.0)",
     "databases[asyncpg] (>=0.9.0,<0.10.0)",
     "alembic (>=1.16.5,<2.0.0)",
-    "python-dotenv (>=1.1.1,<2.0.0)"
+    "python-dotenv (>=1.1.1,<2.0.0)",
+    "python-jose (>=3.5.0,<4.0.0)",
+    "bcrypt (==4.0.1)", # Версия для исключения ошибки с passlib
+    "passlib[bcrypt] (>=1.7.4,<2.0.0)"
 ]
 
 

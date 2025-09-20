@@ -1,4 +1,4 @@
-"""create posts table
+"""create users table
 
 Revision ID: 1dde742c5c9c
 Revises: 
@@ -20,13 +20,13 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     op.execute("""
-        CREATE TABLE posts (
+        CREATE TABLE users (
             id SERIAL PRIMARY KEY,
-            name VARCHAR(100),
-            body VARCHAR(200)
+            username VARCHAR(50),
+            password TEXT
         )
     """)
 
 
 def downgrade() -> None:
-    op.execute("DROP TABLE posts")
+    op.execute("DROP TABLE users")
