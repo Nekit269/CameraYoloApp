@@ -23,6 +23,25 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 templates = Jinja2Templates(directory="app/templates")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
+PUBLIC_PATHS = ["/login", "/register", "/static", "/favicon.ico"]
+
+@app.middleware("http")
+async def check_auth(request: Request, call_next):
+    path = request.url.path
+
+    if any(path.startswith(pub) for pub in PUBLIC_PATHS):
+        return await call_next(request)
+
+    token = request.cookies.get("access_token")
+    if not token:
+        return RedirectResponse(url="/login")
+
+    user = await get_current_user(request)
+    if user is None:
+        return RedirectResponse(url="/login")
+
+    response = await call_next(request)
+    return response
 
 @app.get("/register", response_class=HTMLResponse)
 async def register_form(request: Request):

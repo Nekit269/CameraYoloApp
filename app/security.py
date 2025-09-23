@@ -38,10 +38,6 @@ async def authenticate_user(username: str, password: str):
     return user
 
 async def get_current_user(request: Request):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Неавторизованный доступ",
-    )
     token = request.cookies.get("access_token")
     try:
         payload = jwt.decode(token, secret_key, algorithms=[algorithm])
@@ -49,8 +45,6 @@ async def get_current_user(request: Request):
         if username is None:
             raise credentials_exception
     except JWTError:
-        raise credentials_exception
+        return None
     user = await get_user_by_username(username=username)
-    if user is None:
-        raise credentials_exception
     return user
