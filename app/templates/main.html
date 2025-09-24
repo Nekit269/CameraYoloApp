@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Главное окно</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+<header class="header">
+    <div class="header-left">
+        <a href="/" class="home-link">🏠 На главную</a>
+    </div>
+    <div class="header-right">
+        <div class="user-menu">
+            <span class="username">Имя пользователя ▼</span>
+            <div class="dropdown">
+                <a href="/profile">Личный кабинет</a>
+                <a href="/logout">Выйти</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="main">
+    <aside class="sidebar">
+        <button class="add-btn">➕ Добавить</button>
+        <ul class="camera-list" id="cameraList">
+            {% for camera in cameras %}
+            <li class="camera-item" data-id="{{ camera.id }}" data-name="{{ camera.name }}" data-url="{{ camera.url }}">
+                <span>{{ camera.name }}</span>
+                <button class="settings-dots">⋮</button>
+            </li>
+            {% endfor %}
+        </ul>
+    </aside>
+
+    <section class="content">
+        <div class="video-container">
+            <video id="cameraStream" autoplay controls>
+                <source src="/stream/camera1.m3u8" type="application/x-mpegURL">
+                Ваш браузер не поддерживает HLS.
+            </video>
+        </div>
+    </section>
+
+    <aside class="settings">
+        <div class="form-group">
+            <label for="modelSelect">Модели</label>
+            <select id="modelSelect">
+                <option value="yolov8">YOLOv8</option>
+                <option value="yolov12">YOLOv12</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="accuracyInput">Точность</label>
+            <input type="number" id="accuracyInput" min="0" max="100" value="50">
+        </div>
+    </aside>
+</main>
+
+<div class="modal" id="cameraModal">
+    <div class="modal-content">
+        <h2 id="modalTitle">Камера</h2>
+        <form id="cameraForm">
+            <div class="form-group">
+                <label for="cameraName">Название камеры</label>
+                <input type="text" id="cameraName" name="cameraName" 
+                placeholder="Название" required maxlength="100">
+            </div>
+            <div class="form-group">
+                <label for="cameraUrl">Адрес камеры</label>
+                <input type="text" id="cameraUrl" name="cameraUrl" 
+                placeholder="URL адрес" required maxlength="250">
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn">Подтвердить</button>
+                <button type="button" class="btn cancel-btn" id="cancelCameraForm">Отмена</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.querySelector('.username').addEventListener('click', function() {
+        document.querySelector('.dropdown').classList.toggle('show');
+    });
+
+    const modal = document.getElementById('cameraModal');
+    const title = document.getElementById('modalTitle');
+    const form = document.getElementById('cameraForm');
+    const cameraList = document.getElementById('cameraList');
+
+    document.querySelector('.add-btn').addEventListener('click', function() {
+        modal.dataset.mode = "add";
+        title.textContent = "Добавить камеру";
+        form.reset();
+        modal.classList.add('show');
+    });
+
+    cameraList.addEventListener("click", (e) => {
+        const target = e.target;
+
+        if (target.classList.contains("settings-dots")) {
+            const li = target.closest("li");
+
+            modal.dataset.mode = "edit";
+            modal.dataset.cameraId = li.dataset.id;
+
+            modalTitle.textContent = "Редактировать камеру";
+            document.getElementById("cameraName").value = li.dataset.name;
+            document.getElementById("cameraUrl").value = li.dataset.url;
+
+            modal.classList.add("show");
+        }
+    });
+
+    document.getElementById('cancelCameraForm').addEventListener('click', function() {
+        modal.classList.remove('show');
+    });
+
+    const cameraStream = document.getElementById('cameraStream');
+
+    document.getElementById('cameraForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const mode = modal.dataset.mode;
+        const name = document.getElementById('cameraName').value;
+        const url = document.getElementById('cameraUrl').value;
+
+        if (mode == "add") {
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('url', url);
+
+            const response = await fetch('/cameras/add', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+
+            if(result.success){
+                const li = document.createElement('li');
+                li.dataset.id = result.id;
+                li.dataset.name = name;
+                li.dataset.url = url;
+                li.classList.add('camera-item');
+
+                const text = document.createElement('span');
+                text.textContent = name;
+
+                const menuBtn = document.createElement('button');
+                menuBtn.textContent = "⋮";
+                menuBtn.classList.add("settings-dots");
+                
+                li.appendChild(text);
+                li.appendChild(menuBtn);
+                cameraList.appendChild(li);
+                modal.classList.remove('show');
+            } else {
+                alert(result.error);
+            }
+        } else if (mode == "edit") {
+            cameraId = modal.dataset.cameraId;
+
+            const formData = new FormData();
+            formData.append('id', cameraId);
+            formData.append('name', name);
+            formData.append('url', url);
+
+            const response = await fetch('/cameras/update', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            if (result.success) {
+                const li = document.querySelector(`li[data-id='${cameraId}']`);
+                if (li) {
+                    li.dataset.name = name;
+                    li.dataset.url = url;
+                    li.childNodes[1].textContent = name;
+                }
+                modal.classList.remove('show');
+            } else {
+                alert(result.error);
+            }
+        }
+    });
+</script>
+</body>
+</html>

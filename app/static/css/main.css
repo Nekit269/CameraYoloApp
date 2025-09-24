@@ -1,0 +1,209 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #2c3e50;
+    color: white;
+    padding: 10px 20px;
+    height: 30px;
+}
+
+.header a {
+    color: white;
+    text-decoration: none;
+} 
+
+h2 {
+    margin-bottom: 1.5rem;
+    color: #333;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-size: 14px;
+    color: #555;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 0.6rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+input:focus {
+    border-color: #4a90e2;
+}
+
+.btn {
+    width: 100%;
+    padding: 0.7rem;
+    background: #4a90e2;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: background 0.2s;
+}
+
+.btn:hover {
+    background: #357ab8;
+}
+
+.user-menu {
+    position: relative;
+    cursor: pointer;
+}
+
+.dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    min-width: 150px;
+    z-index: 1000;
+}
+
+.dropdown a {
+    display: block;
+    padding: 10px;
+    color: #333;
+    text-decoration: none;
+}
+
+.dropdown a:hover {
+    background: #eee;
+}
+
+.dropdown.show {
+    display: block;
+}
+
+.main {
+    display: flex;
+    height: calc(100vh - 50px);
+}
+
+.sidebar {
+    width: 220px;
+    background: #ecf0f1;
+    padding: 15px;
+    box-shadow: inset -1px 0 0 #ddd;
+}
+
+.add-btn {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+}
+
+.camera-list {
+    list-style: none;
+    padding: 0;
+}
+
+.camera-list li {
+    padding: 8px;
+    cursor: pointer;
+    background: #fff;
+    margin-bottom: 5px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.camera-list li:hover {
+    background: #dfe6e9;
+}
+
+.settings-dots {
+    cursor: pointer;
+}
+
+.content {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #bdc3c7;
+}
+
+.video-container {
+    width: 80%;
+    background: black;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+video {
+    width: 100%;
+    height: auto;
+}
+
+.settings {
+    width: 220px;
+    background: #ecf0f1;
+    padding: 15px;
+    box-shadow: inset 1px 0 0 #ddd;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90%;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.cancel-btn {
+    background: #e74c3c;
+}
