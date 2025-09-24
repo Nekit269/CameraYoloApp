@@ -179,6 +179,6 @@ async def read_users_me(current_user: User = Depends(get_current_user)):
 
 @app.get("/logout")
 async def logout():
-    response = RedirectResponse(url="/")
+    response = RedirectResponse(url="/login")
     response.delete_cookie("access_token")
     return response
