@@ -21,7 +21,7 @@ from .security import (
     authenticate_user, 
     get_current_user
 )
-from models.user import User
+from .models.user import User
 
 
 @asynccontextmanager
