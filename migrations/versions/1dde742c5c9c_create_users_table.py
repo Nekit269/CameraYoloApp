@@ -22,8 +22,9 @@ def upgrade() -> None:
     op.execute("""
         CREATE TABLE users (
             id SERIAL PRIMARY KEY,
-            username VARCHAR(50),
-            password TEXT
+            username VARCHAR(50) UNIQUE NOT NULL,
+            password TEXT UNIQUE NOT NULL,
+            created_at TIMESTAMP DEFAULT now()
         )
     """)
 
