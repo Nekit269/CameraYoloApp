@@ -73,6 +73,9 @@
                 placeholder="URL адрес" required maxlength="250">
             </div>
             <div class="modal-actions">
+                <button type="button" class="btn del-btn" id="delCameraForm">Удалить камеру</button>
+            </div>
+            <div class="modal-actions">
                 <button type="submit" class="btn">Подтвердить</button>
                 <button type="button" class="btn cancel-btn" id="cancelCameraForm">Отмена</button>
             </div>
@@ -89,12 +92,14 @@
     const title = document.getElementById('modalTitle');
     const form = document.getElementById('cameraForm');
     const cameraList = document.getElementById('cameraList');
+    const delCameraButton = document.getElementById('delCameraForm');
 
     document.querySelector('.add-btn').addEventListener('click', function() {
         modal.dataset.mode = "add";
         title.textContent = "Добавить камеру";
         form.reset();
         modal.classList.add('show');
+        delCameraButton.classList.remove('show');
     });
 
     cameraList.addEventListener("click", (e) => {
@@ -111,11 +116,37 @@
             document.getElementById("cameraUrl").value = li.dataset.url;
 
             modal.classList.add("show");
+            delCameraButton.classList.add('show');
         }
     });
 
     document.getElementById('cancelCameraForm').addEventListener('click', function() {
         modal.classList.remove('show');
+    });
+
+    delCameraButton.addEventListener('click', async (e) => {
+        e.preventDefault();
+
+        cameraId = modal.dataset.cameraId;
+
+        const formData = new FormData();
+        formData.append('id', cameraId);
+
+        const response = await fetch('/cameras/delete', {
+            method: 'POST',
+            body: formData
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            const li = document.querySelector(`li[data-id='${cameraId}']`);
+            if (li) {
+                li.remove();
+                modal.classList.remove('show');
+            }
+        } else {
+            alert(result.error);
+        }
     });
 
     const cameraStream = document.getElementById('cameraStream');

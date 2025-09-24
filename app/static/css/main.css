@@ -200,6 +200,15 @@ label {
     gap: 10px;
 }
 
+.del-btn {
+    display: none;
+    background: #e74c3c;
+}
+
+.del-btn.show {
+    display: block;
+}
+
 .modal.show {
     display: flex;
 }

@@ -24,16 +24,6 @@ async def create_user(username: str, hashed_password: str):
     values = {"username": username, "password": hashed_password}
     await db.execute(query=query, values=values)
 
-async def get_camera(user_id: int, camera_name: str):
-    query = """
-        SELECT * FROM cameras 
-        WHERE user_id = :user_id AND name = :name
-    """
-    values = {"user_id": user_id, "name": camera_name}
-    result = await db.fetch_one(query, values)
-    if result:
-        return result
-    
 async def check_user_camera(user_id: int, camera_id: int):
     query = """
         SELECT id FROM cameras 
@@ -45,6 +35,16 @@ async def check_user_camera(user_id: int, camera_id: int):
         return True
     else:
         return False
+
+async def get_camera(user_id: int, camera_name: str):
+    query = """
+        SELECT * FROM cameras 
+        WHERE user_id = :user_id AND name = :name
+    """
+    values = {"user_id": user_id, "name": camera_name}
+    result = await db.fetch_one(query, values)
+    if result:
+        return result
     
 async def get_camera_by_id(id: int):
     query = """
@@ -85,6 +85,17 @@ async def update_camera_db(id: int, name: str, url: str):
         RETURNING id
     """
     values = {"id": id, "name": name, "url": url}
+    result = await db.execute(query, values)
+    if result:
+        return result
+    
+async def delete_camera_db(id: int):
+    query = """
+        DELETE FROM cameras 
+        WHERE id = :id 
+        RETURNING id
+    """
+    values = {"id": id}
     result = await db.execute(query, values)
     if result:
         return result

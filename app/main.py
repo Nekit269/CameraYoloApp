@@ -13,7 +13,8 @@ from .database import (
     get_camera_by_id,
     get_user_cameras,
     add_camera,
-    update_camera_db)
+    update_camera_db,
+    delete_camera_db)
 from .security import (
     get_password_hash, 
     create_access_token, 
@@ -147,7 +148,7 @@ async def update_camera(id: int = Form(...),
                         user: User = Depends(get_current_user)):
     if await check_user_camera(user.id, id):
         result = await update_camera_db(id, name, url)
-        print(result)
+
         if result:
             return JSONResponse({"success": True, "id": id})
         else:
@@ -156,6 +157,21 @@ async def update_camera(id: int = Form(...),
 
     return JSONResponse({"success": False, 
                          "error": "Неавторизованное обновление бд"})
+
+@app.post("/cameras/delete")
+async def delete_camera(id: int = Form(...),
+                        user: User = Depends(get_current_user)):
+    if await check_user_camera(user.id, id):
+        result = await delete_camera_db(id)
+
+        if result:
+            return JSONResponse({"success": True, "id": id})
+        else:
+            return JSONResponse({"success": False, 
+                                 "error": "Не удалось удалить из бд"})
+
+    return JSONResponse({"success": False, 
+                         "error": "Неавторизованное удаление из бд"})
 
 @app.get("/users/me", response_model=User)
 async def read_users_me(current_user: User = Depends(get_current_user)):
