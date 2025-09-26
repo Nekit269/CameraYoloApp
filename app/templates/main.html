@@ -136,6 +136,15 @@
         }
     }
 
+    window.addEventListener("DOMContentLoaded", () => {
+        const li = document.querySelector(".camera-list .camera-item");
+        console.log(li);
+        if (li) {
+            li.classList.add("selected");
+            switchCamera(li.dataset.id);
+        }
+    });
+
     document.getElementById("applySettings").addEventListener("click", async (e) => {
         const cameraSettings = document.getElementById("cameraSettings");
         const select = document.getElementById("modelSelect");
@@ -153,7 +162,7 @@
         const result = await response.json();
 
         if (!result.success) {
-            alert(result.error)
+            alert(result.error);
         }
     });
 
@@ -162,6 +171,10 @@
         
         if (target.classList.contains("camera-item")) {
             const li = target.closest("li");
+
+            cameraList.querySelectorAll(".camera-item").forEach(el => el.classList.remove("selected"));
+            li.classList.add("selected");
+
             switchCamera(li.dataset.id)
         } else if (target.classList.contains("settings-dots")) {
             const li = target.closest("li");

@@ -122,7 +122,7 @@ input:focus {
     padding: 0;
 }
 
-.camera-list li {
+.camera-item {
     padding: 8px;
     cursor: pointer;
     background: #fff;
@@ -133,8 +133,14 @@ input:focus {
     align-items: center;
 }
 
-.camera-list li:hover {
+.camera-item:hover {
     background: #dfe6e9;
+}
+
+.camera-item.selected {
+  background-color: #3498db;
+  color: white;           
+  border-radius: 4px;
 }
 
 .settings-dots {
