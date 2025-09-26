@@ -43,17 +43,21 @@
         </div>
     </section>
 
-    <aside class="settings">
+    <aside class="settings" id="cameraSettings">
         <div class="form-group">
             <label for="modelSelect">Модели</label>
             <select id="modelSelect">
-                <option value="yolov8">YOLOv8</option>
-                <option value="yolov12">YOLOv12</option>
+                {% for model in models %}
+                <option value="{{ model }}">{{ model }}</option>
+                {% endfor %}
             </select>
         </div>
         <div class="form-group">
-            <label for="accuracyInput">Точность</label>
-            <input type="number" id="accuracyInput" min="0" max="100" value="50">
+            <label for="thresholdInput">Порог</label>
+            <input type="number" id="thresholdInput" min="0" max="100" value="50">
+        </div>
+        <div class="form-group">
+            <button type="button" class="btn" id="applySettings">Применить настройки</button>
         </div>
     </aside>
 </main>
@@ -102,10 +106,64 @@
         delCameraButton.classList.remove('show');
     });
 
+    async function switchCamera(cameraId) {
+        const formData = new FormData();
+        formData.append('id', cameraId);
+
+        const response = await fetch('/cameras/settings/get', {
+            method: 'POST',
+            body: formData
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            const select = document.getElementById("modelSelect");
+
+            for (let option of select.options) {
+                if (option.value === result.model_name) {
+                    option.selected = true;
+                    break;
+                }
+            }
+
+            const thresholdInput = document.getElementById("thresholdInput");
+            thresholdInput.value = result.confidence_threshold;
+
+            const cameraSettings = document.getElementById("cameraSettings");
+            cameraSettings.dataset.id = cameraId;
+        } else {
+            alert(result.error)
+        }
+    }
+
+    document.getElementById("applySettings").addEventListener("click", async (e) => {
+        const cameraSettings = document.getElementById("cameraSettings");
+        const select = document.getElementById("modelSelect");
+        const thresholdInput = document.getElementById("thresholdInput");
+
+        const formData = new FormData();
+        formData.append('id', cameraSettings.dataset.id);
+        formData.append('model', select.value);
+        formData.append('threshold', thresholdInput.value);
+
+        const response = await fetch('/cameras/settings/set', {
+            method: 'POST',
+            body: formData
+        });
+        const result = await response.json();
+
+        if (!result.success) {
+            alert(result.error)
+        }
+    });
+
     cameraList.addEventListener("click", (e) => {
         const target = e.target;
-
-        if (target.classList.contains("settings-dots")) {
+        
+        if (target.classList.contains("camera-item")) {
+            const li = target.closest("li");
+            switchCamera(li.dataset.id)
+        } else if (target.classList.contains("settings-dots")) {
             const li = target.closest("li");
 
             modal.dataset.mode = "edit";
@@ -148,8 +206,6 @@
             alert(result.error);
         }
     });
-
-    const cameraStream = document.getElementById('cameraStream');
 
     document.getElementById('cameraForm').addEventListener('submit', async (e) => {
         e.preventDefault();

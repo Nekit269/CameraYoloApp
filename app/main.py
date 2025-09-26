@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI, Request, Depends, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -10,11 +12,12 @@ from .database import (
     create_user, 
     get_camera,
     check_user_camera,
-    get_camera_by_id,
     get_user_cameras,
     add_camera,
     update_camera_db,
-    delete_camera_db)
+    delete_camera_db,
+    get_camera_settings_by_id,
+    set_camera_settings_by_id)
 from .security import (
     get_password_hash, 
     create_access_token, 
@@ -123,12 +126,11 @@ async def panel_form(request: Request,
     else:
         cameras_list = []
 
-    return templates.TemplateResponse("main.html", {"request": request, 
-                                                    "cameras": cameras_list})
+    yolo_models = list(map(lambda x: x.split('.')[0], os.listdir("app/yolo")))
 
-@app.get("/panel", response_class=HTMLResponse)
-async def panel(current_user: User = Depends(get_current_user)):
-    return current_user
+    return templates.TemplateResponse("main.html", {"request": request, 
+                                                    "cameras": cameras_list,
+                                                    "models": yolo_models})
 
 @app.post("/cameras/add")
 async def add_new_camera(name: str = Form(...),
@@ -172,6 +174,41 @@ async def delete_camera(id: int = Form(...),
 
     return JSONResponse({"success": False, 
                          "error": "Неавторизованное удаление из бд"})
+
+@app.post("/cameras/settings/get")
+async def get_camera_settings(id: int = Form(...),
+                              user: User = Depends(get_current_user)):
+    if await check_user_camera(user.id, id):
+        result = await get_camera_settings_by_id(id)
+
+        if result:
+            return JSONResponse({"success": True, 
+                                 "url": result.url,
+                                 "model_name": result.model_name,
+                                 "confidence_threshold": result.confidence_threshold})
+        else:
+            return JSONResponse({"success": False, 
+                                 "error": "Не удалось получить данные из бд"})
+
+    return JSONResponse({"success": False, 
+                         "error": "Неавторизованный доступ к бд"})
+
+@app.post("/cameras/settings/set")
+async def set_camera_settings(id: int = Form(...),
+                              model: str = Form(...),
+                              threshold: int = Form(...),
+                              user: User = Depends(get_current_user)):
+    if await check_user_camera(user.id, id):
+        result = await set_camera_settings_by_id(id, model, threshold)
+
+        if result:
+            return JSONResponse({"success": True})
+        else:
+            return JSONResponse({"success": False, 
+                                 "error": "Не удалось обновить данные в бд"})
+
+    return JSONResponse({"success": False, 
+                         "error": "Неавторизованный доступ к бд"})
 
 @app.get("/users/me", response_model=User)
 async def read_users_me(current_user: User = Depends(get_current_user)):

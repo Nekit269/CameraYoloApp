@@ -46,16 +46,6 @@ async def get_camera(user_id: int, camera_name: str):
     if result:
         return result
     
-async def get_camera_by_id(id: int):
-    query = """
-        SELECT user_id, name, url FROM cameras 
-        WHERE id = :id
-    """
-    values = {"id": id}
-    result = await db.fetch_one(query, values)
-    if result:
-        return result
-    
 async def get_user_cameras(user_id: int):
     query = """
         SELECT id, name, url FROM cameras 
@@ -68,13 +58,21 @@ async def get_user_cameras(user_id: int):
         return result
     
 async def add_camera(user_id: int, name: str, url: str):
-    query = """
-        INSERT INTO cameras (user_id, name, url) 
-        VALUES (:user_id, :name, :url)
-        RETURNING id
-    """
-    values = {"user_id": user_id, "name": name, "url": url}
-    camera_id = await db.execute(query, values)
+    async with db.transaction():
+        query = """
+            INSERT INTO cameras (user_id, name, url) 
+            VALUES (:user_id, :name, :url)
+            RETURNING id
+        """
+        values = {"user_id": user_id, "name": name, "url": url}
+        camera_id = await db.execute(query, values)
+
+        query = """
+            INSERT INTO cameras_settings (camera_id) 
+            VALUES (:camera_id)
+        """
+        values = {"camera_id": camera_id}
+        await db.execute(query, values)
     return camera_id
 
 async def update_camera_db(id: int, name: str, url: str):
@@ -96,6 +94,29 @@ async def delete_camera_db(id: int):
         RETURNING id
     """
     values = {"id": id}
+    result = await db.execute(query, values)
+    if result:
+        return result
+    
+async def get_camera_settings_by_id(id: int):
+    query = """
+        SELECT url, model_name, confidence_threshold FROM cameras 
+        JOIN cameras_settings ON cameras.id = camera_id
+        WHERE cameras.id = :id
+    """
+    values = {"id": id}
+    result = await db.fetch_one(query, values)
+    if result:
+        return result
+    
+async def set_camera_settings_by_id(id: int, model: str, threshold: int):
+    query = """
+        UPDATE cameras_settings
+        SET model_name = :model, confidence_threshold = :threshold
+        WHERE camera_id = :id
+        RETURNING camera_id
+    """
+    values = {"id": id, "model": model, "threshold": threshold}
     result = await db.execute(query, values)
     if result:
         return result
