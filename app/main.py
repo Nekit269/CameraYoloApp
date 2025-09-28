@@ -138,6 +138,7 @@ async def panel_form(request: Request,
                                       os.listdir("app/yolo")))
 
     return templates.TemplateResponse("main.html", {"request": request, 
+                                                    "username": user.username,
                                                     "cameras": cameras_list,
                                                     "models": yolo_models})
 
