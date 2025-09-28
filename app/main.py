@@ -1,9 +1,15 @@
 import os
 
 from fastapi import FastAPI, Request, Depends, Form
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi.responses import (
+    HTMLResponse, 
+    RedirectResponse, 
+    JSONResponse,
+    StreamingResponse
+)
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from fastapi.exceptions import HTTPException
 from contextlib import asynccontextmanager
 
 from .database import (
@@ -24,16 +30,18 @@ from .security import (
     authenticate_user, 
     get_current_user
 )
+from. video import VideoManager, load_models
 from .models.user import User
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await db.connect()
+    load_models()
     yield
     await db.disconnect()
 
-
+video_manager = VideoManager()
 app = FastAPI(lifespan=lifespan)
 templates = Jinja2Templates(directory="app/templates")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
@@ -126,7 +134,8 @@ async def panel_form(request: Request,
     else:
         cameras_list = []
 
-    yolo_models = list(map(lambda x: x.split('.')[0], os.listdir("app/yolo")))
+    yolo_models = ["None"] + list(map(lambda x: x.split('.')[0], 
+                                      os.listdir("app/yolo")))
 
     return templates.TemplateResponse("main.html", {"request": request, 
                                                     "cameras": cameras_list,
@@ -152,6 +161,8 @@ async def update_camera(id: int = Form(...),
         result = await update_camera_db(id, name, url)
 
         if result:
+            video_manager.update_url(user.id, id, url)
+
             return JSONResponse({"success": True, "id": id})
         else:
             return JSONResponse({"success": False, 
@@ -202,6 +213,8 @@ async def set_camera_settings(id: int = Form(...),
         result = await set_camera_settings_by_id(id, model, threshold)
 
         if result:
+            video_manager.update_params(user.id, model, threshold * 0.01)
+
             return JSONResponse({"success": True})
         else:
             return JSONResponse({"success": False, 
@@ -219,3 +232,27 @@ async def logout():
     response = RedirectResponse(url="/login")
     response.delete_cookie("access_token")
     return response
+
+@app.get("/stream/{camera_id}")
+async def video_feed(camera_id: int,
+                     user: User = Depends(get_current_user)):
+    if await check_user_camera(user.id, camera_id):
+        result = await get_camera_settings_by_id(camera_id)
+
+        if result:
+            video_manager.start_stream(user.id, 
+                                       camera_id,
+                                       result.url, 
+                                       result.model_name,
+                                       result.confidence_threshold * 0.01)
+
+            media_type = "multipart/x-mixed-replace; boundary=frame"
+            return StreamingResponse(video_manager.get_frames(user.id), 
+                                     media_type=media_type)
+        else:
+            return HTTPException(status_code=403,
+                                 detail="Не удалось получить данные из бд")
+
+    else:
+        raise HTTPException(status_code=403, 
+                            detail="Неавторизованный доступ к камере")
