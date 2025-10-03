@@ -1,1 +1,1 @@
-Проект с FastAPI, Alembic, PostgreSQL
+Проект с FastAPI, Alembic, PostgreSQL, OpenCV, YOLO
