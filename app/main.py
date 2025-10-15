@@ -6,8 +6,11 @@
 """
 
 import os
+import asyncio
+import logging
 from contextlib import asynccontextmanager
 
+from sqlalchemy.exc import OperationalError
 from fastapi import Depends, FastAPI, Form, Request
 from fastapi.exceptions import HTTPException
 from fastapi.responses import (
@@ -51,7 +54,20 @@ async def lifespan(app: FastAPI):
     - При старте: подключение к БД и загрузка YOLO-моделей.
     - При завершении: отключение от БД.
     """
-    await db.connect()
+    max_retries = 10
+    retry_delay = 2
+
+    for i in range(max_retries):
+        try:
+            await db.connect()
+            logging.info("Успешное подключение к базе данных")
+            break
+        except OperationalError as e:
+            logging.warning(f"База данных не загрузилась, повтор {i+1}/{max_retries}... ({e})")
+            await asyncio.sleep(retry_delay)
+    else:
+        raise Exception("Не удалось подключиться к базе данных")
+    
     load_models()
     yield
     await db.disconnect()
