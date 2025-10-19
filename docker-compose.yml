@@ -6,7 +6,7 @@ services:
     depends_on:
       - db
     env_file:
-      - .env
+      - config/.env
     volumes:
       - .:/CameraYoloApp
     entrypoint: ["sh", "/CameraYoloApp/entrypoint.sh"]
@@ -14,7 +14,7 @@ services:
   db:
     image: postgres:15
     env_file:
-      - .env
+      - config/.env
     ports:
       - "5432:5432"
     volumes:

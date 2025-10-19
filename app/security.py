@@ -9,12 +9,10 @@ from typing import Optional, Any, Dict
 from jose import JWTError, jwt
 from fastapi import Request
 from passlib.context import CryptContext
-from dotenv import load_dotenv
 
 from .database import get_user_by_username
 
 # --- Конфигурация / константы ---
-load_dotenv()
 SECRET_KEY: Optional[str] = os.getenv("SECRET_KEY")
 ALGORITHM: Optional[str] = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 30

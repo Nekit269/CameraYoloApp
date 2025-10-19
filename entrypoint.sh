@@ -8,7 +8,7 @@ until pg_isready -h db -U "$POSTGRES_USER"; do
 done
 
 echo "Database is up - running migrations"
-poetry run alembic upgrade head
+poetry run alembic -c config/alembic.ini upgrade head
 
 echo "Starting application"
 exec poetry run python run.py

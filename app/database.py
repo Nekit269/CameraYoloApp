@@ -7,10 +7,8 @@ from typing import Any, Dict, List, Optional
 import os
 
 import databases
-from dotenv import load_dotenv
 
 # --- Конфигурация / константы ---
-load_dotenv()
 DATABASE_URL: Optional[str] = os.getenv("DATABASE_URL")
 db = databases.Database(DATABASE_URL)
 
